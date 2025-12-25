@@ -1,126 +1,222 @@
+---
 
-```markdown
-# Number Plate Detection & Recognition 🚗🔍
+# 🚘 Number Plate Detection System (OCR-Driven Trip Trigger)
 
-![Python](https://img.shields.io/badge/Python-3.8+-3776AB?style=for-the-badge&logo=python&logoColor=white)
-![OpenCV](https://img.shields.io/badge/OpenCV-4.x-5C3EE8?style=for-the-badge&logo=opencv&logoColor=white)
-![TensorFlow](https://img.shields.io/badge/TensorFlow-2.x-FF6F00?style=for-the-badge&logo=tensorflow&logoColor=white)
+This repository contains a **real-time Number Plate Detection (OCR) system** built using **OpenCV and Python**, designed to work alongside a **GPS tracking backend** and an **Android application**.
 
-An end-to-end Automatic Number Plate Recognition (ANPR) system that detects vehicle license plates from images or video streams and performs Optical Character Recognition (OCR) to extract text data.
+The system detects vehicle number plates using a live camera feed and **automatically triggers trip creation** in the backend **only when the detected plate matches the vehicle logged into the Android app**.
 
 ---
 
-## 🌟 Key Features
+## 🧠 System Purpose
 
-* **License Plate Localization:** Uses Haar Cascades or YOLO-based object detection to find plates in complex backgrounds.
-* **Image Preprocessing:** Grayscale conversion, Gaussian Blur, and Canny Edge Detection for enhanced OCR accuracy.
-* **Character Segmentation:** Isolates individual alphanumeric characters from the detected plate.
-* **OCR Extraction:** Converts visual characters into string format using Tesseract or CNN-based models.
-* **Real-Time Processing:** Capable of processing video feeds for live traffic monitoring.
+✔ Detect vehicle number plates via camera
+✔ Validate Indian number plate format
+✔ Match OCR result with Android login state
+✔ Trigger backend `/start_trip` automatically
+✔ Prevent duplicate or unauthorized triggers
 
-## 🛠 Tech Stack
-
-* **Language:** Python
-* **Computer Vision:** OpenCV
-* **Deep Learning Framework:** TensorFlow / Keras (for character recognition)
-* **OCR Engine:** Tesseract OCR / EasyOCR
-* **Environment:** Jupyter Notebook / Python Scripts
+This ensures **secure, automated, and tamper-proof trip initiation**.
 
 ---
 
-## 📂 Project Structure
+## 🏗️ How It Fits in the System
 
-```text
-Number-Plate-Detection/
-├── Data/                 # Sample images and videos for testing
-├── Models/               # Pre-trained weights (.h5 or .xml files)
-├── Scripts/
-│   ├── detect.py         # Main detection script
-│   ├── preprocess.py     # Image cleaning & filtering
-│   └── ocr_engine.py     # Text extraction logic
-├── requirements.txt      # Python dependencies
-└── README.md             # Project documentation
+```
+Camera Feed
+   ↓
+OCR Detection (OpenCV)
+   ↓
+Plate Validation
+   ↓
+Android Login Check
+   ↓
+Backend /start_trip API
+```
 
+The OCR system **never blindly starts trips** — it coordinates with backend session state and Android login to avoid misuse.
+
+---
+
+## 🚀 Features
+
+### 👁️ Real-Time Plate Detection
+
+* Uses OpenCV to read frames from live camera
+* Frame resizing for improved OCR accuracy
+* Continuous detection loop
+
+### 🔍 Plate Validation
+
+* Regex-based validation for Indian number plates
+  Format:
+
+  ```
+  KA01AB1234
+  ```
+
+### 🔐 Secure Matching Logic
+
+* OCR plate must match:
+
+  * Android logged-in vehicle
+  * Backend session state
+* Duplicate detections are ignored
+
+### 🔄 Backend Coordination
+
+* Polls backend to:
+
+  * Check Android login state
+  * Check if trip is already active
+* Calls `/start_trip` only when required
+
+### 🗄️ Database Logging
+
+* Stores detected plates via `db_module`
+* Useful for audit and debugging
+
+---
+
+## 🧰 Tech Stack
+
+| Layer                 | Technology              |
+| --------------------- | ----------------------- |
+| Language              | **Python**              |
+| Computer Vision       | **OpenCV**              |
+| OCR                   | Custom OCR module       |
+| Backend Communication | **REST APIs (FastAPI)** |
+| Image Utils           | imutils                 |
+| Regex Validation      | re                      |
+| Camera                | Webcam / USB Camera     |
+
+---
+
+## 📁 Project Structure
+
+```
+NUMBER-PLATE-DETECTION/
+├── major_project-master/
+│   ├── main.py              # OCR execution loop
+│   ├── ocr_module.py        # Plate detection logic
+│   ├── db_module.py         # Plate logging
+│   ├── config.py            # Configuration
+│   ├── requirements.txt
+│   ├── venv/
+│   └── __pycache__/
+│
+├── playground-1.mongodb.js  # MongoDB playground script
+├── README.md
+└── .gitignore
 ```
 
 ---
 
-## 🚀 Getting Started
+## ⚙️ Installation & Setup
 
-### 1. Prerequisites
+### 1️⃣ Clone the Repository
 
-Ensure you have the following installed:
-
-* Python 3.8+
-* [Tesseract OCR Engine](https://github.com/tesseract-ocr/tesseract) (Add to system PATH)
-
-### 2. Installation
-
-1. **Clone the Repository:**
 ```bash
-git clone [https://github.com/shritej1808/Number-Plate-Detection.git](https://github.com/shritej1808/Number-Plate-Detection.git)
-cd Number-Plate-Detection
-
+git clone <your-repo-url>
+cd NUMBER-PLATE-DETECTION/major_project-master
 ```
 
+### 2️⃣ Create Virtual Environment
 
-2. **Install Dependencies:**
+```bash
+python -m venv venv
+source venv/bin/activate    # Windows: venv\Scripts\activate
+```
+
+### 3️⃣ Install Dependencies
+
 ```bash
 pip install -r requirements.txt
-
 ```
 
+---
 
+## 🔧 Configuration
 
-### 3. Usage
+Inside `main.py`:
 
-To run the detection on a sample image:
+```python
+API_BASE = "https://<your-backend-url>"
+POLL_INTERVAL = 1.5
+HTTP_TIMEOUT = 5.0
+```
+
+Ensure:
+
+* Backend server is running
+* Android app is logged in
+* Camera is connected and accessible
+
+---
+
+## ▶️ Running the OCR System
 
 ```bash
-python detect.py --input sample_car.jpg
-
+python main.py
 ```
 
-For real-time webcam detection:
+Output:
 
-```bash
-python detect.py --source 0
+* Live camera feed window
+* Console logs showing:
 
-```
+  * Detected plates
+  * Login state
+  * Backend responses
+
+Press **`q`** to quit.
 
 ---
 
-## ⚙️ How It Works
+## 🧪 Detection Logic Summary
 
-1. **Input:** Takes a high-resolution image or video frame.
-2. **Detection:** A bounding box is drawn around the area identified as a license plate.
-3. **Binarization:** The cropped plate area is converted to a high-contrast binary image.
-4. **Recognition:** The OCR engine reads the characters.
-5. **Output:** The recognized plate number is printed on the console and overlaid on the image.
-
----|
-
----
-
-## 🤝 Contributing
-
-1. Fork the Project.
-2. Create your Feature Branch (`git checkout -b feature/NewFeature`).
-3. Commit your Changes (`git commit -m 'Add NewFeature'`).
-4. Push to the Branch.
-5. Open a Pull Request.
+1. Read camera frame
+2. Detect plate text via OCR
+3. Normalize & validate plate
+4. Check Android logged-in vehicle
+5. Ignore duplicates
+6. Call `/start_trip` if allowed
+7. Log detection in DB
 
 ---
 
-**Maintained by:** [shritej1808](https://www.google.com/search?q=https://github.com/shritej1808)
-```
+## 🔒 Safety & Validation
+
+✔ Prevents duplicate trip triggers
+✔ Rejects invalid plate formats
+✔ Rejects mismatched vehicle detections
+✔ Respects backend session state
+
+This makes the system **robust against false positives**.
 
 ---
 
-### **How to add this to your repo:**
-1. Open your repository on GitHub.
-2. Click **Add file** > **Create new file**.
-3. Name it `README.md`.
-4. Paste the content above and click **Commit changes**.
+## 🔮 Future Enhancements
 
-```
+* Deep learning–based plate recognition (YOLO + CRNN)
+* Multiple camera support
+* Night-time detection improvements
+* Confidence score thresholding
+* Edge deployment (Jetson / Raspberry Pi)
+
+---
+
+## 🎯 Why This Module Matters
+
+This OCR system transforms GPS tracking from **manual to automatic**.
+It demonstrates:
+
+* Computer vision
+* API coordination
+* Real-time system design
+* Secure automation
+
+
+---
+
+Just say **“next”** 😄
